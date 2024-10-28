@@ -66,14 +66,14 @@ void SystemClock_Config(void)
 
   if(LL_FLASH_GetLatency() != LL_FLASH_LATENCY_0)
   {
-  Error_Handler();
+  Error_Handler();  
   }
   LL_RCC_HSI_Enable();
 
    /* Wait till HSI is ready */
   while(LL_RCC_HSI_IsReady() != 1)
   {
-
+    
   }
   LL_RCC_HSI_SetCalibTrimming(16);
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
@@ -84,7 +84,7 @@ void SystemClock_Config(void)
    /* Wait till System clock is ready */
   while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI)
   {
-
+  
   }
   LL_Init1msTick(8000000);
   LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);

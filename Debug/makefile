@@ -61,7 +61,7 @@ main-build: i2c_comm.elf secondary-outputs
 
 # Tool invocations
 i2c_comm.elf i2c_comm.map: $(OBJS) $(USER_OBJS) C:\Users\vendo\Desktop\i2c_comm\STM32F303K8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "i2c_comm.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\vendo\Desktop\i2c_comm\STM32F303K8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="i2c_comm.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "i2c_comm.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\vendo\Desktop\i2c_comm\STM32F303K8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="i2c_comm.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

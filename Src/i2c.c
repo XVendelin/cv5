@@ -25,69 +25,17 @@ uint8_t i2c_rx_data = 0;
 
 /* USER CODE END 0 */
 
-// Funkcia na čítanie dát cez I2C so single- a multi-byte prenosom
-int i2c_read(uint8_t slave_address, uint8_t register_address, uint8_t* data, uint16_t length) {
-    // Inicializácia prenosu na zápis - odoslanie adresy registra
-    LL_I2C_HandleTransfer(I2C1, slave_address, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_SOFTEND, LL_I2C_GENERATE_START_WRITE);
-
-    while(!LL_I2C_IsActiveFlag_STOP(I2C1)) {
-        if(LL_I2C_IsActiveFlag_TXIS(I2C1)) {
-            LL_I2C_TransmitData8(I2C1, register_address);
-            break;
-        }
-    }
-    LL_I2C_ClearFlag_STOP(I2C1);
-
-    // Inicializácia prenosu na čítanie
-    LL_I2C_HandleTransfer(I2C1, slave_address, LL_I2C_ADDRSLAVE_7BIT, length, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
-
-    // Čítanie dát
-    for(uint16_t i = 0; i < length; i++) {
-        while(!LL_I2C_IsActiveFlag_RXNE(I2C1)) {
-            // Počkajte na prijatie dát
-        }
-        data[i] = LL_I2C_ReceiveData8(I2C1);
-    }
-    while(!LL_I2C_IsActiveFlag_STOP(I2C1)) {}
-
-    LL_I2C_ClearFlag_STOP(I2C1);
-    return 0; // Vráti 0 na úspech
-}
-
-// Funkcia na zápis dát cez I2C so single- a multi-byte prenosom
-int i2c_write(uint8_t slave_address, uint8_t register_address, uint8_t* data, uint16_t length) {
-    // Inicializácia prenosu na zápis - odoslanie adresy registra
-    LL_I2C_HandleTransfer(I2C1, slave_address, LL_I2C_ADDRSLAVE_7BIT, length + 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
-
-    while(!LL_I2C_IsActiveFlag_TXIS(I2C1)) {}
-
-    // Zápis adresy registra
-    LL_I2C_TransmitData8(I2C1, register_address);
-
-    // Zápis dát
-    for(uint16_t i = 0; i < length; i++) {
-        while(!LL_I2C_IsActiveFlag_TXIS(I2C1)) {}
-        LL_I2C_TransmitData8(I2C1, data[i]);
-    }
-    while(!LL_I2C_IsActiveFlag_STOP(I2C1)) {}
-
-    LL_I2C_ClearFlag_STOP(I2C1);
-    return 0; // Vráti 0 na úspech
-}
-
-
-
 /* I2C1 init function */
 void MX_I2C1_Init(void)
 {
   LL_I2C_InitTypeDef I2C_InitStruct = {0};
 
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-
+  
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-  /**I2C1 GPIO Configuration
+  /**I2C1 GPIO Configuration  
   PB6   ------> I2C1_SCL
-  PB7   ------> I2C1_SDA
+  PB7   ------> I2C1_SDA 
   */
   GPIO_InitStruct.Pin = LL_GPIO_PIN_6|LL_GPIO_PIN_7;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
@@ -104,7 +52,7 @@ void MX_I2C1_Init(void)
   NVIC_SetPriority(I2C1_EV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
   NVIC_EnableIRQ(I2C1_EV_IRQn);
 
-  /** I2C Initialization
+  /** I2C Initialization 
   */
   LL_I2C_EnableAutoEndMode(I2C1);
   LL_I2C_DisableOwnAddress2(I2C1);
