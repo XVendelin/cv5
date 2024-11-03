@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2023 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -23,94 +22,108 @@
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
+#include "HTS221.h"
 
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-#define 	LSM6DS0_DEVICE_ADDRESS		0x6A
-#define 	LSM6DS0_DEVICE_ADDRESS_1	0x6B
-#define 	LSM6DS0_WHO_AM_I_VALUE		0x68
-#define 	LSM6DS0_WHO_AM_I_ADDRES		0x0F
-#define 	LSM6DS0_ADDRESS_CTRL1		0x10
+/* USER CODE END Includes */
 
-#define 	LSM6DS0_ADDRESS_X		0x28
-#define 	LSM6DS0_ADDRESS_Y		0x2A
-#define 	LSM6DS0_ADDRESS_Z		0x2C
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
 
+/* USER CODE END PTD */
 
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
+float temperature;
+float humidity;
+float pressure;
+float refference_pressure;
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-uint8_t addres = LSM6DS0_DEVICE_ADDRESS;
-float acc[3];
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
 
+/* USER CODE END 0 */
 
-
-void read_array(uint8_t *data, uint8_t reg, uint8_t length)
-{
-	i2c_master_read(data, length, reg, addres, 0);
-}
-
-void get_acc(float* x, float* y, float* z)
-{
-	uint8_t data[6];
-	int16_t xx, yy, zz;
-
-	read_array(data, LSM6DS0_ADDRESS_X, 6);
-
-	xx = ((uint16_t)data[1])<<8|data[0];
-	yy = ((uint16_t)data[2])<<8|data[2];
-	zz = ((uint16_t)data[3])<<8|data[4];
-
-	*x = (xx>>4)/1000.0f;
-	*y = (yy>>4)/1000.0f;
-	*z = (zz>>4)/1000.0f;
-}
-
-uint8_t lsm6ds0_init(void)
-{
-	uint8_t status = 1;
-	LL_mDelay(100);
-
-	if(i2c_master_read_byte(LSM6DS0_DEVICE_ADDRESS, LSM6DS0_WHO_AM_I_ADDRES) == LSM6DS0_WHO_AM_I_VALUE)
-	{
-		status = 1;
-	}
-	else
-	{
-		if(i2c_master_read_byte(LSM6DS0_DEVICE_ADDRESS_1, LSM6DS0_WHO_AM_I_ADDRES) == LSM6DS0_WHO_AM_I_VALUE)
-		{
-			status = 1;
-		}
-		else
-		{
-			status = 0;
-		}
-	}
-}
-
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
-  HAL_Init();
+  /* USER CODE BEGIN 1 */
 
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+
+  /* System interrupt init*/
+  NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
+  /* SysTick_IRQn interrupt configuration */
+  NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
   SystemClock_Config();
 
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  lsm6ds0_init();
-  /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  HTS221_init();
+  LPS25HB_init();
 
-   while (1) {
-   // Main loop
-	   get_acc(&acc[0], &acc[1], &acc[2]);
-	   char buffer[20]; // Buffer to hold the string representation of the acceleration
-	   sprintf(buffer, "Acceleration Z: %0.4f\r\n", acc[0]); // Format the string
-	   USART2_SendString(buffer);
-	   LL_mDelay(2000);
-   }
+
+  	const uint8_t tx_message[] = "%2.1f, %.0f, %.2f, %.2f \r\n";
+  	uint8_t tx_data[80];
+  	LL_mDelay(10);
+  	LPS25HB_get_pressure(&refference_pressure);
+  	while (1) {
+
+  		HTS221_get_temperature(&temperature);
+  		HTS221_get_humidity(&humidity);
+  		LPS25HB_get_pressure(&pressure);
+  		float alt = (float)44330.00 * (1-pow(pressure/refference_pressure,1/5.255));
+  	    uint8_t tx_data_len = (uint8_t)sprintf((char*)tx_data, (char*)tx_message, temperature, humidity, alt, pressure);
+  	    USART2_PutBuffer(tx_data, tx_data_len);
+  	    LL_mDelay(500);
+  	}
+
   /* USER CODE END 3 */
 }
 
@@ -142,13 +155,8 @@ void SystemClock_Config(void)
   {
 
   }
+  LL_Init1msTick(8000000);
   LL_SetSystemCoreClock(8000000);
-
-   /* Update the time base */
-  if (HAL_InitTick (TICK_INT_PRIORITY) != HAL_OK)
-  {
-    Error_Handler();
-  }
   LL_RCC_SetI2CClockSource(LL_RCC_I2C1_CLKSOURCE_HSI);
 }
 
@@ -164,9 +172,13 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
+
 
 #ifdef  USE_FULL_ASSERT
 /**
@@ -180,7 +192,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
