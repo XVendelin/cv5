@@ -25,4 +25,5 @@ SUBDIRS := \
 Drivers/STM32F3xx_HAL_Driver/Src \
 Src \
 Startup \
+sensors_i2c \
 

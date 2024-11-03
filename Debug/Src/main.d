@@ -37,7 +37,8 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_ll_pwr.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_ll_usart.h \
  ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_ll_gpio.h ../Inc/dma.h \
- ../Inc/main.h ../Inc/i2c.h ../Inc/usart.h ../Inc/gpio.h ../Src/HTS221.h
+ ../Inc/main.h ../Inc/i2c.h ../Inc/usart.h ../Inc/gpio.h \
+ C:/Users/vendo/Desktop/i2c_comm/sensors_i2c/HTS221.h
 ../Inc/main.h:
 ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_ll_dma.h:
 ../Drivers/CMSIS/Device/ST/STM32F3xx/Include/stm32f3xx.h:
@@ -82,4 +83,4 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
 ../Inc/i2c.h:
 ../Inc/usart.h:
 ../Inc/gpio.h:
-../Src/HTS221.h:
+C:/Users/vendo/Desktop/i2c_comm/sensors_i2c/HTS221.h:
