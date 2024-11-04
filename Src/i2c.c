@@ -83,58 +83,79 @@ void MX_I2C1_Init(void)
 }
 
 /* USER CODE BEGIN 1 */
-void i2c_master_write_multi(uint8_t* data, size_t length, uint8_t register_addr, uint8_t slave_addr, uint8_t read_flag) {
+void i2c_master_write_multi(uint8_t* data, size_t len, uint8_t register_addr, uint8_t slave_addr, uint8_t read_flag) {
+    // Set the read flag on the register address if required
     if (read_flag) {
         register_addr |= (1 << 7);
     }
-    LL_I2C_HandleTransfer(I2C1, slave_addr, LL_I2C_ADDRSLAVE_7BIT, 1 + length, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
+
+    // Step 1: Start I2C transfer with the specified slave address and total data length
+    LL_I2C_HandleTransfer(I2C1, slave_addr, LL_I2C_ADDRSLAVE_7BIT, 1 + len,
+                          LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
+
+    // Step 2: Transmit the register address first
     LL_I2C_TransmitData8(I2C1, register_addr);
 
+    // Step 3: Transmit data bytes from the buffer
     size_t dataIndex = 0;
     while (!LL_I2C_IsActiveFlag_STOP(I2C1)) {
-        if (LL_I2C_IsActiveFlag_TXIS(I2C1)) {
-            if (dataIndex < length) {
-                LL_I2C_TransmitData8(I2C1, data[dataIndex++]);
-            }
+        if (LL_I2C_IsActiveFlag_TXIS(I2C1) && dataIndex < len) {
+            LL_I2C_TransmitData8(I2C1, data[dataIndex++]);
         }
     }
+
+    // Step 4: Clear the STOP flag to reset the I2C bus state
     LL_I2C_ClearFlag_STOP(I2C1);
 }
 
-uint8_t* i2c_master_read(uint8_t *buffer, uint8_t length, uint8_t register_addr,
-		uint8_t slave_addr, uint8_t read_flag) {
-	aReceiveBuffer_read = buffer;
-	if (read_flag) {
-		register_addr |= (1 << 7);
-	}
-	end_of_read_flag = 0;
-	LL_I2C_EnableIT_RX(I2C1);
+// This function reads data from an I2C slave device and stores it in the provided buffer.
+uint8_t* i2c_master_read(uint8_t *buffer, uint8_t len, uint8_t register_addr,
+                         uint8_t slave_addr, uint8_t read_flag) {
+    // Set the buffer for reading data
+    aReceiveBuffer_read = buffer;
+    ubReceiveIndex = 0;
+    end_of_read_flag = 0;
 
-	//poziadam slejva o citanie z jeho registra
-	LL_I2C_HandleTransfer(I2C1, slave_addr, LL_I2C_ADDRSLAVE_7BIT, 1,
-			LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
-	while (!LL_I2C_IsActiveFlag_STOP(I2C1)) {
-		if (LL_I2C_IsActiveFlag_TXIS(I2C1)) {
-			LL_I2C_TransmitData8(I2C1, register_addr);
-		}
-	}
-	LL_I2C_ClearFlag_STOP(I2C1);
-	while (LL_I2C_IsActiveFlag_STOP(I2C1)) {
-	}
-	//citam register od slejva
-	LL_I2C_HandleTransfer(I2C1, slave_addr, LL_I2C_ADDRSLAVE_7BIT, length,
-			LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
-	while (!LL_I2C_IsActiveFlag_STOP(I2C1)) {
-	};
+    // Adjust register address if read_flag is set
+    if (read_flag) {
+        register_addr |= (1 << 7);
+    }
 
-	//End of transfer
-	LL_I2C_ClearFlag_STOP(I2C1);
-	LL_I2C_DisableIT_RX(I2C1);
-	I2C1->ICR |= (1 << 4);
-	ubReceiveIndex = 0;
-	end_of_read_flag = 1;
+    // Enable receive interrupt
+    LL_I2C_EnableIT_RX(I2C1);
 
-	return aReceiveBuffer_read;
+    // Step 1: Request the register address from the slave
+    LL_I2C_HandleTransfer(I2C1, slave_addr, LL_I2C_ADDRSLAVE_7BIT, 1,
+                          LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
+
+    // Wait for the STOP condition after transmitting register address
+    while (!LL_I2C_IsActiveFlag_STOP(I2C1)) {
+        if (LL_I2C_IsActiveFlag_TXIS(I2C1)) {
+            LL_I2C_TransmitData8(I2C1, register_addr);
+        }
+    }
+    LL_I2C_ClearFlag_STOP(I2C1);
+
+    // Step 2: Read the data from the slave
+    LL_I2C_HandleTransfer(I2C1, slave_addr, LL_I2C_ADDRSLAVE_7BIT, len,
+                          LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
+
+    // Wait for STOP condition after reading the data
+    while (!LL_I2C_IsActiveFlag_STOP(I2C1)) {
+    }
+    LL_I2C_ClearFlag_STOP(I2C1);
+
+    // Disable receive interrupt
+    LL_I2C_DisableIT_RX(I2C1);
+
+    // Clear any pending flags (ICR register) to reset the I2C bus status
+    I2C1->ICR |= (1 << 4);
+
+    // Mark the end of the read operation
+    end_of_read_flag = 1;
+
+    // Return the buffer with received data
+    return aReceiveBuffer_read;
 }
 void I2C1_Master_Reception_Callback(void) {
 	aReceiveBuffer_read[ubReceiveIndex++] = LL_I2C_ReceiveData8(I2C1);

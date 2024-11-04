@@ -24,7 +24,7 @@
 /* Memory buffer used directly by DMA for USART Rx*/
 uint8_t bufferUSART2dma[DMA_USART2_BUFFER_SIZE];
 
-extern uint8_t Should_load;
+extern uint8_t nacita;
 
 /* Declaration and initialization of callback function */
 static void (* USART2_ProcessData)(const uint8_t* data, uint16_t len) = 0;
@@ -146,7 +146,7 @@ void resetBuffer()
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
     LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
-    Should_load = 0;
+    nacita = 0;
 }
 
 

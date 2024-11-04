@@ -1,4 +1,6 @@
 /*
+ * milujem Lucku
+ *
  * LPS25HB.h
  *
  *  Created on: 1. Nov 2024
@@ -17,16 +19,16 @@
 
 #define 	LPS25HB_ADDRESS_CTRL1			0x20
 
-#define 	LPS25HB_ADDRESS_PRESS_OUT_XL	0x28
-#define 	LPS25HB_ADDRESS_PRESS_OUT_L		0x29
-#define 	LPS25HB_ADDRESS_PRESS_OUT_H		0x2A
+#define 	LPS25HB_PRESSURE_OUT			0x28
 
 #define		LPS25HB_ADDRESS_RPDS_L			0x39
-#define		LPS25HB_ADDRESS_RPDS_H			0x3A
+
+#define 	LPS25HB_PRESSURE_OUT_L		0x29
 
 void LPS25HB_rb(uint8_t reg_addr);
 void LPS25HB_wb(uint8_t reg_addr, uint8_t value);
 void LPS25HB_init(void);
 
 void LPS25HB_pc(void);
+void LPS25HB_press(float* press);
 #endif /* LPS25HB_H_ */

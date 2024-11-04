@@ -64,20 +64,18 @@ int main(void)
   LPS25HB_init();
 
 
-  	const uint8_t mess[] = "teplota: %2.1f, vlhkost: %.0f, : %.2f, tlak: %.2f \r\n";
   	uint8_t data[80];
 
   	LL_mDelay(10);
-  	LPS25HB_p(&r_tlak);
+  	LPS25HB_press(&r_tlak);
 
   	while (1) {
-  		HTS221_get_t(&tepl);
-  		HTS221_get_h(&vlh);
-  		LPS25HB_p(&tlak);
-
+  		HTS221_temp(&tepl);
+  		HTS221_hum(&vlh);
+  		LPS25HB_press(&tlak);
   		float vyska = (float)44330.77 * (1-pow(tlak/r_tlak,0.1902632));
-  	    uint8_t data_len = (uint8_t)sprintf((char*)data, (char*)mess, tepl, vlh, vyska, tlak);
-  	    USART2_PutBuffer(data, data_len);
+  	    uint8_t length = (uint8_t)sprintf((char*)data, "teplota: %2.1f, vlhkost: %.0f, : %.2f, tlak: %.2f \r\n", tepl, vlh, vyska, tlak);
+  	    USART2_PutBuffer(data, length);
   	    LL_mDelay(500);
   	}
 }
