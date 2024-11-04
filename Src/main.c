@@ -109,16 +109,16 @@ int main(void)
   LPS25HB_init();
 
 
-  	const uint8_t tx_message[] = "%2.1f, %.0f, %.2f, %.2f \r\n";
+  	const uint8_t tx_message[] = "teplota: %2.1f, vlhkost: %.0f, vyska: %.2f, tlak: %.2f \r\n";
   	uint8_t tx_data[80];
   	LL_mDelay(10);
-  	LPS25HB_get_pressure(&refference_pressure);
+  	LPS25HB_p(&refference_pressure);
   	while (1) {
 
-  		HTS221_get_temperature(&temperature);
-  		HTS221_get_humidity(&humidity);
-  		LPS25HB_get_pressure(&pressure);
-  		float alt = (float)44330.00 * (1-pow(pressure/refference_pressure,1/5.255));
+  		HTS221_get_t(&temperature);
+  		HTS221_get_h(&humidity);
+  		LPS25HB_p(&pressure);
+  		float alt = (float)44330.77 * (1-pow(pressure/refference_pressure,0.1902632));
   	    uint8_t tx_data_len = (uint8_t)sprintf((char*)tx_data, (char*)tx_message, temperature, humidity, alt, pressure);
   	    USART2_PutBuffer(tx_data, tx_data_len);
   	    LL_mDelay(500);

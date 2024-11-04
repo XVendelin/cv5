@@ -1,8 +1,8 @@
 /*
  * LPS25HB.h
  *
- *  Created on: 6 Nov 2023
- *      Author: david
+ *  Created on: 1. Nov 2024
+ *      Author: vendelin
  */
 #include "main.h"
 
@@ -28,5 +28,5 @@ void LPS25HB_read_byte(uint8_t reg_addr);
 void LPS25HB_write_byte(uint8_t reg_addr, uint8_t value);
 void LPS25HB_init(void);
 
-void LPS25HB_get_pressure_calibration(void);
+void LPS25HB_pc(void);
 #endif /* LPS25HB_H_ */

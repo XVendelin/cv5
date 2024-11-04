@@ -1,8 +1,8 @@
 /*
  * HTS221.h
  *
- *  Created on: 6 Nov 2023
- *      Author: david
+ *  Created on: 1. Nov 2024
+ *      Author: vendelin
  */
 
 #include "main.h"
@@ -40,14 +40,14 @@
 #define 	HTS221_T1_OUT_L				0x3E
 #define		HTS221_T1_OUT_H				0x3F
 
-void HTS221_read_bytes(uint8_t reg_addr, uint8_t* values, size_t length);
+void HTS221_read_bs(uint8_t reg_addr, uint8_t* values, size_t length);
 void HTS221_write_byte(uint8_t reg_addr, uint8_t value);
 void HTS221_init(void);
 
-void HTS221_get_humidity_calibration(void);
-void HTS221_get_humidity(float* humidity_out);
+void HTS221_get_hc(void);
+void HTS221_get_h(float* humidity_out);
 
-void HTS221_get_temperature_calibration(void);
-void HTS221_get_temperature(float* temperature_out);
+void HTS221_get_tc(void);
+void HTS221_get_t(float* temperature_out);
 
 #endif /* HTS221_H_ */
