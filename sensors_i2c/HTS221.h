@@ -40,8 +40,8 @@
 #define 	HTS221_T1_OUT_L				0x3E
 #define		HTS221_T1_OUT_H				0x3F
 
-void HTS221_read_bs(uint8_t reg_addr, uint8_t* values, size_t length);
-void HTS221_write_byte(uint8_t reg_addr, uint8_t value);
+void HTS221_rb(uint8_t reg_addr, uint8_t* values, size_t length);
+void HTS221_wb(uint8_t reg_addr, uint8_t value);
 void HTS221_init(void);
 
 void HTS221_get_hc(void);

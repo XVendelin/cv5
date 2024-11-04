@@ -23,61 +23,18 @@
 #include "usart.h"
 #include "gpio.h"
 #include "HTS221.h"
+#include "LPS25HB.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+float tlak;
+float r_tlak;
+float tepl;
+float vlh;
 
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-float temperature;
-float humidity;
-float pressure;
-float refference_pressure;
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
@@ -87,10 +44,6 @@ int main(void)
   /* SysTick_IRQn interrupt configuration */
   NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
 
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
 
@@ -99,33 +52,37 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+
+
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
+
 
   HTS221_init();
   LPS25HB_init();
 
 
-  	const uint8_t tx_message[] = "teplota: %2.1f, vlhkost: %.0f, vyska: %.2f, tlak: %.2f \r\n";
-  	uint8_t tx_data[80];
-  	LL_mDelay(10);
-  	LPS25HB_p(&refference_pressure);
-  	while (1) {
+  	const uint8_t mess[] = "teplota: %2.1f, vlhkost: %.0f, : %.2f, tlak: %.2f \r\n";
+  	uint8_t data[80];
 
-  		HTS221_get_t(&temperature);
-  		HTS221_get_h(&humidity);
-  		LPS25HB_p(&pressure);
-  		float alt = (float)44330.77 * (1-pow(pressure/refference_pressure,0.1902632));
-  	    uint8_t tx_data_len = (uint8_t)sprintf((char*)tx_data, (char*)tx_message, temperature, humidity, alt, pressure);
-  	    USART2_PutBuffer(tx_data, tx_data_len);
+  	LL_mDelay(10);
+  	LPS25HB_p(&r_tlak);
+
+  	while (1) {
+  		HTS221_get_t(&tepl);
+  		HTS221_get_h(&vlh);
+  		LPS25HB_p(&tlak);
+
+  		float vyska = (float)44330.77 * (1-pow(tlak/r_tlak,0.1902632));
+  	    uint8_t data_len = (uint8_t)sprintf((char*)data, (char*)mess, tepl, vlh, vyska, tlak);
+  	    USART2_PutBuffer(data, data_len);
   	    LL_mDelay(500);
   	}
-
-  /* USER CODE END 3 */
 }
+
+
 
 /**
   * @brief System Clock Configuration
@@ -160,14 +117,10 @@ void SystemClock_Config(void)
   LL_RCC_SetI2CClockSource(LL_RCC_I2C1_CLKSOURCE_HSI);
 }
 
-/* USER CODE BEGIN 4 */
 
-/* USER CODE END 4 */
 
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+
+
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */

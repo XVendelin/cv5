@@ -24,8 +24,8 @@
 #define		LPS25HB_ADDRESS_RPDS_L			0x39
 #define		LPS25HB_ADDRESS_RPDS_H			0x3A
 
-void LPS25HB_read_byte(uint8_t reg_addr);
-void LPS25HB_write_byte(uint8_t reg_addr, uint8_t value);
+void LPS25HB_rb(uint8_t reg_addr);
+void LPS25HB_wb(uint8_t reg_addr, uint8_t value);
 void LPS25HB_init(void);
 
 void LPS25HB_pc(void);
